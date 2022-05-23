@@ -1,0 +1,29 @@
+nexo:
+  kraken:
+    websocket:
+      api:
+        public-endpoint: https://api.kraken.com/0/public/
+        private-endpoint: https://api.kraken.com/0/private/GetWebSocketsToken
+        base-domain: https://api.kraken.com
+        private-path: /0/private/
+        auth-token-path: GetWebSocketsToken
+
+      wss:
+        uri: wss://ws.kraken.com
+
+      auth:
+        api-key: <Add your API Key here>
+        api-secret: <Add your private Key here>
+
+      message:
+        max-size-in-bytes: 1048576
+
+      connection:
+        connection-timeout: 10000
+
+      profile: test
+
+logging:
+  level:
+    root: INFO
+    java.net.http: TRACE
