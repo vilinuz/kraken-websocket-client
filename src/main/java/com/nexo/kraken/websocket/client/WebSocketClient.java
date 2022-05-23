@@ -8,7 +8,6 @@ import com.nexo.kraken.websocket.utils.SubscriptionMessageCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -18,7 +17,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -41,7 +39,7 @@ public class WebSocketClient {
                 .buildAsync(
                         URI.create(krakenConfigProperties.getWss().getUri()),
                         WebSocketClientListener.create(webSocketMessageHandler, objectMapper, latch))
-                .orTimeout(krakenConfigProperties.getConnection().getConnectionTimeout(), TimeUnit.MILLISECONDS).join();
+                .join();
 
         String jsonMessage = subscriptionMessageCreator.createJsonMessage();
         log.info("Sending subscription message to Kraken: \n{}", jsonMessage);

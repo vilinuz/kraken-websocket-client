@@ -15,7 +15,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class WebSocketClientListener implements WebSocket.Listener {
     private final WebSocketMessageHandler webSocketMessageHandler;
     private final ObjectMapper objectMapper;
@@ -26,11 +26,11 @@ public class WebSocketClientListener implements WebSocket.Listener {
     @Override
     public void onOpen(WebSocket ws) {
         log.info("WebSocket Client session opened. Sub-protocol: {}", ws.getSubprotocol());
+        WebSocket.Listener.super.onOpen(ws);
     }
 
     @Override
     public CompletionStage<?> onText(WebSocket ws, CharSequence data, boolean last) {
-        latch.countDown();
         handle(ws, data.toString());
         return WebSocket.Listener.super.onText(ws, data, last);
     }
@@ -44,6 +44,8 @@ public class WebSocketClientListener implements WebSocket.Listener {
             } else if (isTickerMessage(message)) {
                 TickerResponse response = webSocketMessageHandler.parse(message);
                 log.info("Ticker response:\n{}", response);
+            } else if (isHeartBeatMessage(message)) {
+                log.debug("Received heartbeat message");
             } else {
                 log.warn("Unknown message: {}", message);
             }
@@ -52,8 +54,18 @@ public class WebSocketClientListener implements WebSocket.Listener {
 
     @Override
     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-        return null;
+        log.info("Kraken Websocket Client closed with Status Code: {}, Reason: {}", statusCode, reason);
+        latch.countDown();
+        return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
     }
+
+    @Override
+    public void onError(WebSocket webSocket, Throwable error) {
+        log.error("Kraken Websocket Client experienced error condition", error);
+        latch.countDown();
+        WebSocket.Listener.super.onError(webSocket, error);
+    }
+
 
     public static WebSocketClientListener create(WebSocketMessageHandler handler, ObjectMapper mapper, CountDownLatch latch) {
         if (Objects.isNull(instance)) {
@@ -69,5 +81,9 @@ public class WebSocketClientListener implements WebSocket.Listener {
 
     private boolean isTickerMessage(final String message) {
         return message.startsWith("[");
+    }
+
+    private boolean isHeartBeatMessage(final String message) {
+        return message.equalsIgnoreCase("{\"event\":\"heartbeat\"}");
     }
 }

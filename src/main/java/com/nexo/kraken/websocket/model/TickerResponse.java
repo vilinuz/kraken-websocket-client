@@ -11,38 +11,36 @@ import lombok.Setter;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.TextStyle;
 import java.util.Comparator;
-import java.util.Map;
+import java.util.List;
 
 @Builder(toBuilder = true)
 @Getter
 @Setter
 @EqualsAndHashCode
 public class TickerResponse {
+    private static final List<String> PAIRS = List.of("BTC/USD", "ETH/USD");
+
     @Builder.Default
     private Multimap<String, String> asks =
             TreeMultimap.create(Comparator.naturalOrder(), Comparator.reverseOrder());
     @Builder.Default
     private Multimap<String, String> bids =
             TreeMultimap.create(Comparator.naturalOrder(), Comparator.reverseOrder());
-    private String pair;
     private ZonedDateTime dateTime;
 
     public static TickerResponse create() {
         return TickerResponse.builder().build();
     }
 
-    private String getBestBid() {
-        return getBids().entries().stream()
-                .map(Map.Entry::getValue)
+    private String getBestBid(String pair) {
+        return bids.get(pair).stream()
                 .findFirst()
                 .orElse("");
     }
 
-    private String getBestAsk() {
-        return getAsks().entries().stream()
-                .map(Map.Entry::getValue)
+    private String getBestAsk(String pair) {
+        return asks.get(pair).stream()
                 .findFirst()
                 .orElse("");
     }
@@ -58,42 +56,54 @@ public class TickerResponse {
     @Override
     public String toString() {
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
-        result.append("<------------------------------------->\n");
-        result.append("asks:\n").append("[ ");
-        this.getAsks().entries().forEach(entry -> {
-            result.append("[ ")
-                    .append(entry.getKey())
-                    .append(", ")
-                    .append(entry.getValue())
-                    .append(" ],\n");
+        PAIRS.forEach(pair -> {
+            appendHeader(builder);
+            appendAsks(builder, pair);
+            appendBests(builder, pair);
+            appendBids(builder, pair);
+            appendFooter(builder, pair);
         });
 
-        result.delete(result.length() - 2, result.length());
-        result.append(" ]\n");
+        return builder.toString();
+    }
 
+    private void appendHeader(StringBuilder builder) {
+        builder.append("<------------------------------------->\n");
+    }
 
-        result.append("best bid: [ " + getBestBid() + " ]\n");
-        result.append("best ask: [ " + getBestAsk() +" ]\n");
+    private void appendFooter(StringBuilder builder, String pair) {
+        builder.append(formatDateTime()).append("\n");
+        builder.append(pair).append("\n");
+        builder.append(">-------------------------------------<\n");
+    }
 
-        result.append("bids:\n").append("[ ");
+    private void appendAsks(StringBuilder builder, String pair) {
+        builder.append("asks:\n").append("[ ");
+        asks.get(pair).forEach(ask ->
+                builder.append("[ ")
+                        .append(ask)
+                        .append(" ],\n"));
 
-        this.getBids().entries().forEach(entry -> {
-            result.append("[ ")
-                    .append(entry.getKey())
-                    .append(", ")
-                    .append(entry.getValue())
-                    .append(" ],\n");
-        });
+        builder.delete(builder.length() - 2, builder.length());
+        builder.append(" ]\n");
+    }
 
-        result.delete(result.length() - 2, result.length());
-        result.append(" ]\n");
+    private void appendBids(StringBuilder builder, String pair) {
+        builder.append("bids:\n").append("[ ");
 
-        result.append(formatDateTime() + "\n");
-        result.append(pair + "\n");
-        result.append(">-------------------------------------<\n");
+        bids.get(pair).forEach(bid ->
+                builder.append("[ ")
+                        .append(bid)
+                        .append(" ],\n"));
 
-        return result.toString();
+        builder.delete(builder.length() - 2, builder.length());
+        builder.append(" ]\n");
+    }
+
+    private void appendBests(StringBuilder builder, String pair) {
+        builder.append("best bid: [ ").append(getBestBid(pair)).append(" ]\n");
+        builder.append("best ask: [ ").append(getBestAsk(pair)).append(" ]\n");
     }
 }

@@ -83,7 +83,6 @@ public class WebSocketMessageHandler {
         tickerResponse.getAsks().put(pair, ask);
         tickerResponse.getBids().put(pair, bid);
         tickerResponse.setDateTime(ZonedDateTime.now());
-        tickerResponse.setPair(pair);
         return tickerResponse;
     }
 

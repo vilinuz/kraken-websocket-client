@@ -40,7 +40,6 @@ class WebSocketMessageHandlerTest {
                         .map(Map.Entry::getValue).findFirst()).isEqualTo(Optional.of("5525.40000,5525.40000")),
                 () -> assertThat(response.getAsks().entries()).hasSize(1),
                 () -> assertThat(response.getBids().entries()).hasSize(1),
-                () -> assertThat(response.getPair()).isEqualTo("BTC/USD"),
                 () -> assertThat(response.getDateTime()).isNotNull()
         );
     }
