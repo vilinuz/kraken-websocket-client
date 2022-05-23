@@ -35,9 +35,9 @@ class WebSocketMessageHandlerTest {
         assertAll(
                 () -> assertThat(response.getAsks().entries()).hasSize(1),
                 () -> assertThat(response.getBids().entries().stream()
-                        .map(Map.Entry::getValue).findFirst()).isEqualTo(Optional.of("5525.10000,5525.10000")),
+                        .map(Map.Entry::getValue).findFirst()).isEqualTo(Optional.of("5525.10000, 1.000")),
                 () -> assertThat(response.getAsks().entries().stream()
-                        .map(Map.Entry::getValue).findFirst()).isEqualTo(Optional.of("5525.40000,5525.40000")),
+                        .map(Map.Entry::getValue).findFirst()).isEqualTo(Optional.of("5525.40000, 1.000")),
                 () -> assertThat(response.getAsks().entries()).hasSize(1),
                 () -> assertThat(response.getBids().entries()).hasSize(1),
                 () -> assertThat(response.getDateTime()).isNotNull()
